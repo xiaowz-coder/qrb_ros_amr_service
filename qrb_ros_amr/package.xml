@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>qrb_ros_amr</name>
+  <version>1.0.0</version>
+  <description>ROS node of AMR service</description>
+
+  <license>BSD-3-Clause-Clear</license>
+
+  <author email="quic_xiaowz@quicinc.com">xiaowz</author>
+  <maintainer email="quic_xiaowz@quicinc.com">xiaowz</maintainer>
+
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <depend>qrb_ros_amr_msgs</depend>
+  <depend>qrb_ros_navigation_msgs</depend>
+  <depend>qrb_ros_robot_base_msgs</depend>
+  <depend>qrb_ros_slam_msgs</depend>
+  <depend>qrb_amr_manager</depend>
+  <depend>nav_2d_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
