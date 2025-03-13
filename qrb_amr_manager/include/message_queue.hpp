@@ -13,13 +13,16 @@
 #include <mutex>
 #include <queue>
 
-namespace qrb {
-namespace amr_manager {
+namespace qrb
+{
+namespace amr_manager
+{
 
-class MessageQueue {
-
+class MessageQueue
+{
 public:
-  void push(const Message &msg) {
+  void push(const Message & msg)
+  {
     std::unique_lock<std::mutex> lck(mtx_);
     if (msg.type == Message::AMR_EXCEPTION) {
       is_error_ = true;
@@ -36,10 +39,10 @@ public:
     cv_.notify_one();
   }
 
-  void wait(Message &msg) {
+  void wait(Message & msg)
+  {
     std::unique_lock<std::mutex> lck(mtx_);
-    while (!queue_.size() && !is_error_ && !is_low_power_ && !is_init_ &&
-           !is_release_)
+    while (!queue_.size() && !is_error_ && !is_low_power_ && !is_init_ && !is_release_)
       cv_.wait(lck);
     if (is_init_) {
       msg.type = Message::INIT_AMR;
@@ -60,12 +63,14 @@ public:
     }
   }
 
-  size_t size() {
+  size_t size()
+  {
     std::unique_lock<std::mutex> lck(mtx_);
     return queue_.size();
   }
 
-  void notify() {
+  void notify()
+  {
     std::unique_lock<std::mutex> lck(mtx_);
     Message msg;
     msg.type = 0;
@@ -83,6 +88,6 @@ private:
   bool is_init_ = false;
   bool is_release_ = false;
 };
-} // namespace amr_manager
-} // namespace qrb
-#endif // QRB_AMR_MANAGER__MESSAGE_QUEUE_HPP_
+}  // namespace amr_manager
+}  // namespace qrb
+#endif  // QRB_AMR_MANAGER__MESSAGE_QUEUE_HPP_

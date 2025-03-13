@@ -102,7 +102,7 @@ private:
   bool is_equal(double a, double b);
   void pose_changed_callback(const PoseStamped::SharedPtr pose);
   void battery_status_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg);
-  void send_velocity(twist_vel& velocity);
+  void send_velocity(twist_vel & velocity);
   void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg);
 
 public:

@@ -45,4 +45,4 @@ public:
 };
 }  // namespace amr
 }  // namespace qrb_ros
-#endif // QRB_ROS_AMR__AUTO_MAPPER_ACTION_CLIENT_HPP_
+#endif  // QRB_ROS_AMR__AUTO_MAPPER_ACTION_CLIENT_HPP_

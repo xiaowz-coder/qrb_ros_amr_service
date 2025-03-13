@@ -9,32 +9,38 @@
 #include "amr_state_machine.hpp"
 #include <memory>
 
-namespace qrb {
-namespace amr_manager {
+namespace qrb
+{
+namespace amr_manager
+{
 
-enum class ChargeCmd {
-  START = 0, // start charging
-  END = 1,   // end charging
+enum class ChargeCmd
+{
+  START = 0,  // start charging
+  END = 1,    // end charging
 };
 
-enum class ChargerState {
+enum class ChargerState
+{
   UNKNOWN = 0,
-  IDLE = 3,           // charging module is idle state
-  SEARCHING = 5,      // charging module is searching the infrared
-  CONTROLLING = 6,    // charging module is controlling the robot
-  FORCE_CHARGING = 7, // charging can not be interrupted
+  IDLE = 3,            // charging module is idle state
+  SEARCHING = 5,       // charging module is searching the infrared
+  CONTROLLING = 6,     // charging module is controlling the robot
+  FORCE_CHARGING = 7,  // charging can not be interrupted
   CHARGING = 1,
-  CHARGING_DONE = 4, // completed charging
+  CHARGING_DONE = 4,  // completed charging
   ERROR = 8,
 };
 
-enum class SetControlMode {
+enum class SetControlMode
+{
   APPLICATION = 0,
   CHARGER = 1,
   REMOTE_CONTROLLER = 2,
 };
 
-class LowPowerManager {
+class LowPowerManager
+{
 private:
   std::shared_ptr<AMRStateMachine> state_machine_;
   void send_event(const int event);
@@ -48,16 +54,16 @@ private:
   int amr_state_;
   change_mode_func_t change_mode_cb_;
 
-  const char* logger_ = "low_power_manager";
+  const char * logger_ = "low_power_manager";
 
 public:
   void register_change_mode_callback(change_mode_func_t cb);
   void notify_amr_state_changed(int state);
   void notify_battery_changed(float battery_vol);
   void notify_charging_state_changed(uint8_t state);
-  LowPowerManager(std::shared_ptr<AMRStateMachine> &state_machine);
+  LowPowerManager(std::shared_ptr<AMRStateMachine> & state_machine);
   ~LowPowerManager();
 };
-} // namespace amr_manager
-} // namespace qrb
-#endif // QRB_AMR_MANAGER__LOW_POWER_MANAGER_HPP_
+}  // namespace amr_manager
+}  // namespace qrb
+#endif  // QRB_AMR_MANAGER__LOW_POWER_MANAGER_HPP_

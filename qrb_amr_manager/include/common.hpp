@@ -13,16 +13,20 @@
 
 using namespace std;
 
-namespace qrb {
-namespace amr_manager {
+namespace qrb
+{
+namespace amr_manager
+{
 
-typedef struct {
+typedef struct
+{
   double x;
   double y;
   double z;
 } twist_vel;
 
-enum class Slam_Command {
+enum class Slam_Command
+{
   StartMapping = 1,
   StopMapping = 2,
   SaveMap = 3,
@@ -31,22 +35,21 @@ enum class Slam_Command {
   Relocalization = 6,
 };
 
-typedef std::function<void(void *buffer)> start_p2p_func_t;
-typedef std::function<void(void *path)> start_follow_path_func_t;
-typedef std::function<void(uint8_t goal, std::vector<uint32_t> &ids)>
+typedef std::function<void(void * buffer)> start_p2p_func_t;
+typedef std::function<void(void * path)> start_follow_path_func_t;
+typedef std::function<void(uint8_t goal, std::vector<uint32_t> & ids)>
     start_waypoint_follow_path_func_t;
 typedef std::function<void(bool p2p, uint8_t sub_cmd)> sub_cmd_func_t;
 typedef std::function<void(bool start)> start_charging_func_t;
-typedef std::function<void(bool exception, int error_code)>
-    notify_exception_func_t;
+typedef std::function<void(bool exception, int error_code)> notify_exception_func_t;
 typedef std::function<void(int state)> send_amr_state_changed_func_t;
 typedef std::function<void(void)> navigate_to_charging_func_t;
 typedef std::function<void(uint8_t mode)> change_mode_func_t;
-typedef std::function<void(uint8_t cmd, bool &result)> slam_command_func_t;
-typedef std::function<void(twist_vel &velocity)>
-    publish_twist_func_t;
+typedef std::function<void(uint8_t cmd, bool & result)> slam_command_func_t;
+typedef std::function<void(twist_vel & velocity)> publish_twist_func_t;
 
-class Command {
+class Command
+{
 public:
   const static int ME = 1;
   const static int AE = 2;
@@ -57,7 +60,8 @@ public:
   const static int SUB_CMD = 7;
   const static int OTHER = 8;
 
-  static std::string cmd_to_string(int cmd) {
+  static std::string cmd_to_string(int cmd)
+  {
     std::string message;
     switch (cmd) {
       case ME:
@@ -92,31 +96,33 @@ public:
   }
 };
 
-class SubCommand {
+class SubCommand
+{
 public:
   const static int CANCEL = 1;
   const static int PAUSE = 2;
   const static int RESUME = 3;
 
-  static std::string to_string(int cmd) {
+  static std::string to_string(int cmd)
+  {
     std::string message;
     switch (cmd) {
-    case CANCEL:
-      message = "CANCEL";
-      break;
-    case PAUSE:
-      message = "PAUSE";
-      break;
-    case RESUME:
-      message = "RESUME";
-      break;
-    default:
-      message = "INVAILD";
-      break;
+      case CANCEL:
+        message = "CANCEL";
+        break;
+      case PAUSE:
+        message = "PAUSE";
+        break;
+      case RESUME:
+        message = "RESUME";
+        break;
+      default:
+        message = "INVAILD";
+        break;
     }
     return message;
   }
 };
-} // namespace amr_manager
-} // namespace qrb
-#endif // QRB_AMR_MANAGER__COMMON_HPP_
+}  // namespace amr_manager
+}  // namespace qrb
+#endif  // QRB_AMR_MANAGER__COMMON_HPP_
