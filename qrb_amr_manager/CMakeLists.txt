@@ -8,10 +8,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(rclcpp_action REQUIRED)
-find_package(geometry_msgs REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
+
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -24,9 +22,7 @@ add_library(${library_name} SHARED
 aux_source_directory(./src SRC_LIST)
 
 ament_target_dependencies(qrb_amr_manager
-  "rclcpp"
-  "rclcpp_action"
-  "geometry_msgs"
+
 )
 
 install(TARGETS qrb_amr_manager
@@ -37,7 +33,6 @@ install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
-
 
 file(GLOB_RECURSE HEADER_FILES
   "${CMAKE_SOURCE_DIR}/include/*.h"
@@ -53,4 +48,4 @@ install(DIRECTORY
   DESTINATION include/${PROJECT_NAME}/
 )
 
-ament_package()
+ament_auto_package()

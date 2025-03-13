@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
@@ -7,6 +7,12 @@
 #include "amr_manager.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include "amr_manager/common.hpp"
+#include <thread>
+#include <pthread.h>
+
+#include <stdio.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 
 using OccupancyGrid = nav_msgs::msg::OccupancyGrid;
 using namespace std::chrono_literals;
@@ -15,18 +21,21 @@ namespace qrb_ros
 {
 namespace amr
 {
-AMRStatusTransporter::AMRStatusTransporter(std::shared_ptr<AMRManager> & amr_manager,
-    const rclcpp::NodeOptions & options)
-  : Node("amr_status_transporter", options), amr_manager_(amr_manager)
+AMRStatusTransporter::AMRStatusTransporter(
+  std::shared_ptr<AMRManager> & amr_manager, const rclcpp::NodeOptions & options)
+: Node("amr_status_transporter", options),
+  amr_manager_(amr_manager)
 {
-  RCLCPP_INFO(logger_, "AMRStatusTransporter");
+  RCLCPP_INFO(logger_,"AMRStatusTransporter");
   init_subscription();
   init_tf_subscriber();
   init_publisher();
   last_time_ = 0;
 }
 
-AMRStatusTransporter::~AMRStatusTransporter() {}
+AMRStatusTransporter::~AMRStatusTransporter()
+{
+}
 
 void AMRStatusTransporter::init_publisher()
 {
@@ -52,12 +61,16 @@ void AMRStatusTransporter::init_publisher()
   };
   amr_manager_->register_notify_exception_callback(notify_exception_callback_);
 
-  send_amr_state_changed_callback_ = [&](int state) { send_amr_state_changed(state); };
+  send_amr_state_changed_callback_ = [&](int state) {
+    send_amr_state_changed(state);
+  };
   amr_manager_->register_send_amr_state_changed_callback(send_amr_state_changed_callback_);
 
   twist_pub_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 
-  publish_twist_cb_ = [&](geometry_msgs::msg::Twist & velocity) { send_velocity(velocity); };
+  publish_twist_cb_ = [&](twist_vel& velocity) {
+    send_velocity(velocity);
+  };
   amr_manager_->register_publish_twist_callback(publish_twist_cb_);
 }
 
@@ -65,12 +78,13 @@ void AMRStatusTransporter::init_subscription()
 {
   using namespace std::placeholders;
   wheel_sub_ = create_subscription<qrb_ros_amr_msgs::msg::WheelStatus>(
-      "wheel_status", 10, std::bind(&AMRStatusTransporter::wheel_status_callback, this, _1));
+    "wheel_status", 10, std::bind(&AMRStatusTransporter::wheel_status_callback, this, _1));
   battery_sub_ = create_subscription<sensor_msgs::msg::BatteryState>(
-      "battery", 10, std::bind(&AMRStatusTransporter::battery_status_callback, this, _1));
+    "battery", 10, std::bind(&AMRStatusTransporter::battery_status_callback, this, _1));
   pose_sub_ = create_subscription<PoseStamped>(
-      "amr_pose", 10, std::bind(&AMRStatusTransporter::pose_changed_callback, this, _1));
-  vel_sub_ = create_subscription<nav_msgs::msg::Odometry>("odom", rclcpp::SystemDefaultsQoS(),
+    "amr_pose", 10, std::bind(&AMRStatusTransporter::pose_changed_callback, this, _1));
+  vel_sub_ = create_subscription<nav_msgs::msg::Odometry>(
+      "odom", rclcpp::SystemDefaultsQoS(),
       std::bind(&AMRStatusTransporter::odom_callback, this, std::placeholders::_1));
 }
 
@@ -88,21 +102,23 @@ void AMRStatusTransporter::send_amr_status(const qrb_ros_amr_msgs::msg::AMRStatu
   pub_->publish(msg);
 }
 
-void AMRStatusTransporter::odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+void AMRStatusTransporter::odom_callback(
+    const nav_msgs::msg::Odometry::SharedPtr msg)
 {
   double vel_x = msg->twist.twist.linear.x;
   double vel_y = msg->twist.twist.linear.y;
   double vel_z = msg->twist.twist.angular.z;
-  if (is_equal(vel_x, odom_velocity_.velocity.x) && is_equal(vel_y, odom_velocity_.velocity.y) &&
+  if (is_equal(vel_x, odom_velocity_.velocity.x) &&
+      is_equal(vel_y, odom_velocity_.velocity.y) &&
       is_equal(vel_z, odom_velocity_.velocity.theta)) {
-    RCLCPP_DEBUG(logger_, "velocity is not changed");
-    return;
+        RCLCPP_DEBUG(logger_,"velocity is not changed");
+        return;
   }
 
   long now = rclcpp::Clock().now().seconds();
   long duration = now - last_time_;
   if (duration < 1) {
-    RCLCPP_DEBUG(logger_, "duration=%d", duration);
+    RCLCPP_DEBUG(logger_,"duration=%d", duration);
     return;
   }
   last_time_ = now;
@@ -115,18 +131,19 @@ void AMRStatusTransporter::odom_callback(const nav_msgs::msg::Odometry::SharedPt
   odom_velocity_.velocity.x = vel_x;
   odom_velocity_.velocity.y = vel_y;
   odom_velocity_.velocity.theta = vel_z;
-  RCLCPP_DEBUG(logger_, "velocity_x:%f,velocity_y:%f,velocity_theta:%f", vel_x, vel_y, vel_z);
+  RCLCPP_DEBUG(logger_, "velocity_x:%f,velocity_y:%f,velocity_theta:%f",
+      vel_x, vel_y, vel_z);
 }
 
 void AMRStatusTransporter::wheel_status_callback(
-    const qrb_ros_amr_msgs::msg::WheelStatus::SharedPtr msg)
+      const qrb_ros_amr_msgs::msg::WheelStatus::SharedPtr msg)
 {
-  // TODO:
+  //TODO:
 }
 
 void AMRStatusTransporter::send_amr_state_changed(int state)
 {
-  RCLCPP_INFO(logger_, "send_amr_state_changed");
+  RCLCPP_INFO(logger_,"send_amr_state_changed");
   message_.status_change_id = (int)StatusID::State_Machine;
   message_.current_state = state;
   send_amr_status(message_);
@@ -140,7 +157,7 @@ void AMRStatusTransporter::init_tf_subscriber()
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   tf2::Quaternion q;
-  q.setRPY(0.0f, 0.0f, 0.0f);  // yaw, pitch, roll
+  q.setRPY(0.0f, 0.0f, 0.0f); // yaw, pitch, roll
 
   // The center pose of the robot in the radar coordinate system.
   // if source_pose set header.stamp, the tf transform will error.
@@ -164,7 +181,8 @@ void AMRStatusTransporter::init_tf_subscriber()
   target_pose_.header.stamp = this->now();
   target_pose_.header.frame_id = target_frame_;
 
-  timer_ = this->create_wall_timer(1s, std::bind(&AMRStatusTransporter::convert_tf_to_pose, this));
+  timer_ = this->create_wall_timer(
+     1s, std::bind(&AMRStatusTransporter::convert_tf_to_pose, this));
 }
 
 void AMRStatusTransporter::convert_tf_to_pose()
@@ -196,20 +214,24 @@ void AMRStatusTransporter::convert_tf_to_pose()
     }
 
     RCLCPP_DEBUG(logger_, "transform pose(%f, %f, %f, %f, %f, %f, %f)",
-        target_pose_.pose.position.x, target_pose_.pose.position.y, target_pose_.pose.position.z,
-        target_pose_.pose.orientation.x, target_pose_.pose.orientation.y,
-        target_pose_.pose.orientation.z, target_pose_.pose.orientation.w);
+                target_pose_.pose.position.x,
+                target_pose_.pose.position.y,
+                target_pose_.pose.position.z,
+                target_pose_.pose.orientation.x,
+                target_pose_.pose.orientation.y,
+                target_pose_.pose.orientation.z,
+                target_pose_.pose.orientation.w);
 
-    RCLCPP_DEBUG(logger_, "transform pose: header:(%d, %s)", target_pose_.header.stamp,
-        target_pose_.header.frame_id.c_str());
+    RCLCPP_DEBUG(logger_, "transform pose: header:(%d, %s)",
+                target_pose_.header.stamp, target_pose_.header.frame_id.c_str());
 
     tf_working_ = true;
     update_amr_pose(target_pose_);
     last_pose_ = target_pose_;
-  } catch (const tf2::TransformException & ex) {
+  } catch (const tf2::TransformException& ex) {
     if ((count_ % 60) == 0) {
-      RCLCPP_ERROR(logger_, "Could not transform %s to %s: %s", source_frame_.c_str(),
-          target_frame_.c_str(), ex.what());
+      RCLCPP_ERROR(logger_, "Could not transform %s to %s: %s",
+         source_frame_.c_str(), target_frame_.c_str(), ex.what());
     }
     tf_working_ = false;
     count_++;
@@ -217,7 +239,7 @@ void AMRStatusTransporter::convert_tf_to_pose()
   }
 }
 
-void AMRStatusTransporter::update_amr_pose(PoseStamped & pose)
+void AMRStatusTransporter::update_amr_pose(PoseStamped& pose)
 {
   RCLCPP_DEBUG(logger_, "update_amr_pose");
   message_.status_change_id = (int)StatusID::Pose;
@@ -234,7 +256,7 @@ bool AMRStatusTransporter::is_pose_change()
       is_equal(target_pose_.pose.orientation.y, last_pose_.pose.orientation.y) &&
       is_equal(target_pose_.pose.orientation.z, last_pose_.pose.orientation.z) &&
       is_equal(target_pose_.pose.orientation.w, last_pose_.pose.orientation.w)) {
-    return false;
+        return false;
   }
   return true;
 }
@@ -248,7 +270,8 @@ bool AMRStatusTransporter::is_equal(double a, double b)
   return false;
 }
 
-void AMRStatusTransporter::pose_changed_callback(const PoseStamped::SharedPtr pose)
+void AMRStatusTransporter::pose_changed_callback(
+      const PoseStamped::SharedPtr pose)
 {
   std::unique_lock<std::mutex> lck(mtx_);
   target_pose_.pose.position.x = pose->pose.position.x;
@@ -262,15 +285,19 @@ void AMRStatusTransporter::pose_changed_callback(const PoseStamped::SharedPtr po
   target_pose_.header.frame_id = pose->header.frame_id;
   if (!tf_working_) {
     RCLCPP_INFO(logger_, "Update AMR pose(%f, %f, %f, %f, %f, %f, %f)",
-        target_pose_.pose.position.x, target_pose_.pose.position.y, target_pose_.pose.position.z,
-        target_pose_.pose.orientation.x, target_pose_.pose.orientation.y,
-        target_pose_.pose.orientation.z, target_pose_.pose.orientation.w);
+                target_pose_.pose.position.x,
+                target_pose_.pose.position.y,
+                target_pose_.pose.position.z,
+                target_pose_.pose.orientation.x,
+                target_pose_.pose.orientation.y,
+                target_pose_.pose.orientation.z,
+                target_pose_.pose.orientation.w);
     update_amr_pose(target_pose_);
   }
 }
 
 void AMRStatusTransporter::battery_status_callback(
-    const sensor_msgs::msg::BatteryState::SharedPtr msg)
+      const sensor_msgs::msg::BatteryState::SharedPtr msg)
 {
   float voltage = msg->voltage;
   float current = msg->current;
@@ -280,8 +307,7 @@ void AMRStatusTransporter::battery_status_callback(
   message_.battery_vol = voltage;
 
   if (voltage != 0) {
-    RCLCPP_INFO(
-        logger_, "battery changed voltage=%.2f, current=%.2f, state=%d", voltage, current, state);
+    RCLCPP_INFO(logger_, "battery changed voltage=%.2f, current=%.2f, state=%d", voltage, current, state);
     amr_manager_->notify_battery_changed(voltage);
     amr_manager_->notify_charging_state_changed(state);
     send_amr_status(message_);
@@ -317,11 +343,18 @@ void AMRStatusTransporter::stop_charging()
   charger_pub_->publish(msg);
 }
 
-void AMRStatusTransporter::send_velocity(geometry_msgs::msg::Twist & velocity)
+void AMRStatusTransporter::send_velocity(twist_vel& velocity)
 {
-  RCLCPP_INFO(logger_, "send velocity(%.2f, %.2f, %.2f) to robot", velocity.linear.x,
-      velocity.linear.y, velocity.angular.z);
-  twist_pub_->publish(velocity);
+  geometry_msgs::msg::Twist twist;
+  twist.linear.x = velocity.x;
+  twist.linear.y = velocity.y;
+  twist.linear.z = 0;
+  twist.angular.x = 0;
+  twist.angular.y = 0;
+  twist.angular.z = velocity.z;
+  RCLCPP_INFO(logger_, "send velocity(%.2f, %.2f, %.2f) to robot", twist.linear.x,
+               twist.linear.y, twist.angular.z);
+  twist_pub_->publish(twist);
 }
 }  // namespace amr
 }  // namespace qrb_ros

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
-#ifndef MAPPING_SERVICE_SERVER_HPP_
-#define MAPPING_SERVICE_SERVER_HPP_
+#ifndef QRB_ROS_AMR__MAPPING_SERVICE_SERVER_HPP_
+#define QRB_ROS_AMR__MAPPING_SERVICE_SERVER_HPP_
 
 #include "rclcpp/rclcpp.hpp"
 #include "qrb_ros_amr_msgs/srv/mapping.hpp"
@@ -46,4 +46,4 @@ public:
 };
 }  // namespace amr
 }  // namespace qrb_ros
-#endif  // MAPPING_SERVICE_SERVER_HPP_
+#endif  // QRB_ROS_AMR__MAPPING_SERVICE_SERVER_HPP_

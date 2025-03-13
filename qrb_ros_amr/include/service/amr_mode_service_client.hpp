@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
-#ifndef AMR_MODE_SERVICE_CLIENT_HPP_
-#define AMR_MODE_SERVICE_CLIENT_HPP_
+#ifndef QRB_ROS_AMR__AMR_MODE_SERVICE_CLIENT_HPP_
+#define QRB_ROS_AMR__AMR_MODE_SERVICE_CLIENT_HPP_
 
 #include <condition_variable>
 #include <mutex>
@@ -52,4 +52,4 @@ public:
 };
 }  // namespace amr
 }  // namespace qrb_ros
-#endif  // AMR_MODE_SERVICE_CLIENT_HPP_
+#endif  // QRB_ROS_AMR__AMR_MODE_SERVICE_CLIENT_HPP_

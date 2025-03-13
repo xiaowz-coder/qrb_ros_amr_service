@@ -1,15 +1,13 @@
 /*
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
-#ifndef AMR_STATE_MACHINE_HPP_
-#define AMR_STATE_MACHINE_HPP_
+#ifndef QRB_AMR_MANAGER__AMR_STATE_MACHINE_HPP_
+#define QRB_AMR_MANAGER__AMR_STATE_MACHINE_HPP_
 
 #include "message_queue.hpp"
-#include "rclcpp/rclcpp.hpp"
 
-#include "geometry_msgs/msg/twist.hpp"
 #include <condition_variable>
 #include <iostream>
 #include <memory>
@@ -17,116 +15,16 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "common.hpp"
 
 using namespace std;
 
 #define ANGULAR_VELOCITY 0.19  // the min angular velocity for arm
 
-namespace qrb
-{
-namespace amr_manager
-{
+namespace qrb {
+namespace amr_manager {
 
-typedef std::function<void(void * buffer)> start_p2p_func_t;
-typedef std::function<void(void * path)> start_follow_path_func_t;
-typedef std::function<void(uint8_t goal, vector<uint32_t> & ids)> start_waypoint_follow_path_func_t;
-typedef std::function<void(bool p2p, uint8_t sub_cmd)> sub_cmd_func_t;
-typedef std::function<void(bool start)> start_charging_func_t;
-typedef std::function<void(bool exception, int error_code)> notify_exception_func_t;
-typedef std::function<void(int state)> send_amr_state_changed_func_t;
-typedef std::function<void(void)> navigate_to_charging_func_t;
-typedef std::function<void(uint8_t mode)> change_mode_func_t;
-typedef std::function<void(uint8_t cmd, bool & result)> slam_command_func_t;
-typedef std::function<void(geometry_msgs::msg::Twist & velocity)> publish_twist_func_t;
-
-enum class Slam_Command
-{
-  StartMapping = 1,
-  StopMapping = 2,
-  SaveMap = 3,
-  LoadMap = 4,
-  StartLocalization = 5,
-  Relocalization = 6,
-};
-
-class Command
-{
-public:
-  const static int ME = 1;
-  const static int AE = 2;
-  const static int P2PNAV = 3;
-  const static int FOLLOW_PATH = 4;
-  const static int CHARGING = 5;
-  const static int WAYPOINT_FOLLOW_PATH = 6;
-  const static int SUB_CMD = 7;
-  const static int OTHER = 8;
-
-  static std::string cmd_to_string(int cmd)
-  {
-    std::string message;
-    switch (cmd) {
-      case ME:
-        message = "ME";
-        break;
-      case AE:
-        message = "AE";
-        break;
-      case P2PNAV:
-        message = "P2PNAV";
-        break;
-      case FOLLOW_PATH:
-        message = "FOLLOW_PATH";
-        break;
-      case CHARGING:
-        message = "CHARGING";
-        break;
-      case WAYPOINT_FOLLOW_PATH:
-        message = "WAYPOINT_FOLLOW_PATH";
-        break;
-      case SUB_CMD:
-        message = "SUB_CMD";
-        break;
-      case OTHER:
-        message = "OTHER";
-        break;
-      default:
-        message = "INVAILD";
-        break;
-    }
-    return message;
-  }
-};
-
-class SubCommand
-{
-public:
-  const static int CANCEL = 1;
-  const static int PAUSE = 2;
-  const static int RESUME = 3;
-
-  static std::string to_string(int cmd)
-  {
-    std::string message;
-    switch (cmd) {
-      case CANCEL:
-        message = "CANCEL";
-        break;
-      case PAUSE:
-        message = "PAUSE";
-        break;
-      case RESUME:
-        message = "RESUME";
-        break;
-      default:
-        message = "INVAILD";
-        break;
-    }
-    return message;
-  }
-};
-
-class AMRStateMachine
-{
+class AMRStateMachine {
 private:
   std::mutex mtx_;
   std::condition_variable * cv_;
@@ -151,9 +49,8 @@ private:
   navigate_to_charging_func_t navigate_to_charging_cb_;
   slam_command_func_t slam_command_cb_;
   publish_twist_func_t publish_twist_cb_;
-  std::shared_ptr<std::thread> return_charging_station_thread_;
 
-  rclcpp::Logger logger_{ rclcpp::get_logger("amr_state_machine") };
+  const char* logger_ = "amr_state_machine";
 
   void enter_idle_state();
   void enter_ready_state();
@@ -168,16 +65,13 @@ private:
   void enter_follow_path_wait_state();
   void enter_low_power_charging_state();
   void enter_on_return_charging_state();
-  void create_return_charging_station_thread();
-  void return_charging_station_function(void * arg);
-  void destory_return_charging_station_thread();
 
-  void * get_current_path();
+  void *get_current_path();
   void return_charging_station();
 
-  bool handle_message(const Message & msg);
+  bool handle_message(const Message &msg);
   void handle_msg();
-  void handle_failed(const Message & msg);
+  void handle_failed(const Message &msg);
 
   void save_map();
   void enter_localization_state();
@@ -214,17 +108,19 @@ public:
   std::string get_current_state();
   void register_start_p2p_nav_callback(start_p2p_func_t cb);
   void register_start_follow_path_callback(start_follow_path_func_t cb);
-  void register_start_waypoint_follow_path_callback(start_waypoint_follow_path_func_t cb);
+  void register_start_waypoint_follow_path_callback(
+      start_waypoint_follow_path_func_t cb);
   void register_sub_cmd_callback(sub_cmd_func_t cb);
   void register_start_charging_callback(start_charging_func_t cb);
   void register_notify_exception_callback(notify_exception_func_t cb);
-  void register_send_amr_state_changed_callback(send_amr_state_changed_func_t cb);
+  void
+  register_send_amr_state_changed_callback(send_amr_state_changed_func_t cb);
   void register_navigate_to_charging_callback(navigate_to_charging_func_t cb);
   void register_slam_command_callback(slam_command_func_t cb);
   void register_publish_twist_callback(publish_twist_func_t cb);
 
-  void process_cmd(int cmd, void * buffer = nullptr, size_t len = -1);
-  void process_cmd(int cmd, uint32_t goal_id, vector<uint32_t> & ids);
+  void process_cmd(int cmd, void *buffer = nullptr, size_t len = -1);
+  void process_cmd(int cmd, uint32_t goal_id, vector<uint32_t> &ids);
   void process_sub_cmd(int message);
   void process_event(int event);
   void process_event(int event, uint8_t error_code);
@@ -239,59 +135,58 @@ public:
   AMRStateMachine();
   ~AMRStateMachine();
 
-  std::string state_to_string(int msg)
-  {
+  std::string state_to_string(int msg) {
     std::string message;
     switch (msg) {
-      case IN_ACTIVE:
-        message = "IN_ACTIVE";
-        break;
-      case IDLE:
-        message = "IDLE";
-        break;
-      case READY:
-        message = "READY";
-        break;
-      case ON_AE:
-        message = "ON_AE";
-        break;
-      case ON_ME:
-        message = "ON_ME";
-        break;
-      case ME_DONE:
-        message = "ME_DONE";
-        break;
-      case ON_FOLLOW_PATH:
-        message = "ON_FOLLOW_PATH";
-        break;
-      case FOLLOW_PATH_WAIT:
-        message = "FOLLOW_PATH_WAIT";
-        break;
-      case ON_P2PNAV:
-        message = "ON_P2PNAV";
-        break;
-      case P2PNAV_WAIT:
-        message = "P2PNAV_WAIT";
-        break;
-      case ON_RETURN_CHARGING:
-        message = "ON_RETURN_CHARGING";
-        break;
-      case LOW_POWER_CHARGING:
-        message = "LOW_POWER_CHARGING";
-        break;
-      case ON_ERROR:
-        message = "ON_ERROR";
-        break;
-      case LOCALIZATION:
-        message = "LOCALIZATION";
-        break;
-      default:
-        message = "INVALID_STATE";
-        break;
+    case IN_ACTIVE:
+      message = "IN_ACTIVE";
+      break;
+    case IDLE:
+      message = "IDLE";
+      break;
+    case READY:
+      message = "READY";
+      break;
+    case ON_AE:
+      message = "ON_AE";
+      break;
+    case ON_ME:
+      message = "ON_ME";
+      break;
+    case ME_DONE:
+      message = "ME_DONE";
+      break;
+    case ON_FOLLOW_PATH:
+      message = "ON_FOLLOW_PATH";
+      break;
+    case FOLLOW_PATH_WAIT:
+      message = "FOLLOW_PATH_WAIT";
+      break;
+    case ON_P2PNAV:
+      message = "ON_P2PNAV";
+      break;
+    case P2PNAV_WAIT:
+      message = "P2PNAV_WAIT";
+      break;
+    case ON_RETURN_CHARGING:
+      message = "ON_RETURN_CHARGING";
+      break;
+    case LOW_POWER_CHARGING:
+      message = "LOW_POWER_CHARGING";
+      break;
+    case ON_ERROR:
+      message = "ON_ERROR";
+      break;
+    case LOCALIZATION:
+      message = "LOCALIZATION";
+      break;
+    default:
+      message = "INVALID_STATE";
+      break;
     }
     return message;
   }
 };
-}  // namespace amr_manager
-}  // namespace qrb
-#endif  // AMR_STATE_MACHINE_HPP_
+} // namespace amr_manager
+} // namespace qrb
+#endif // QRB_AMR_MANAGER__AMR_STATE_MACHINE_HPP_

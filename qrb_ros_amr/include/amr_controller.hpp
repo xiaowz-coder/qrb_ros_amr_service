@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
-#ifndef AMR_CONTROLLER_HPP_
-#define AMR_CONTROLLER_HPP_
+#ifndef QRB_ROS_AMR__AMR_CONTROLLER_HPP_
+#define QRB_ROS_AMR__AMR_CONTROLLER_HPP_
 
 #include "api_service_server.hpp"
 #include "mapping_service_server.hpp"
@@ -57,4 +57,4 @@ public:
 };
 }  // namespace amr
 }  // namespace qrb_ros
-#endif  // AMR_CONTROLLER_HPP_
+#endif  // QRB_ROS_AMR__AMR_CONTROLLER_HPP_

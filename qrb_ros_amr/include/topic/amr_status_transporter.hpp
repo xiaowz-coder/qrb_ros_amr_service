@@ -18,7 +18,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "amr_manager.hpp"
 
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2/LinearMath/Quaternion.h"
@@ -102,7 +102,7 @@ private:
   bool is_equal(double a, double b);
   void pose_changed_callback(const PoseStamped::SharedPtr pose);
   void battery_status_callback(const sensor_msgs::msg::BatteryState::SharedPtr msg);
-  void send_velocity(geometry_msgs::msg::Twist & velocity);
+  void send_velocity(twist_vel& velocity);
   void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg);
 
 public:

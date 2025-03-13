@@ -23,6 +23,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(qrb_ros_robot_base_msgs REQUIRED)
 find_package(qrb_ros_slam_msgs REQUIRED)
+find_package(qrb_amr_manager REQUIRED)
 ament_auto_find_build_dependencies()
 
 include_directories(
@@ -84,18 +85,16 @@ ament_target_dependencies(qrb_ros_amr
 
 
 target_link_libraries(qrb_ros_amr
-  "${PROJECT_SOURCE_DIR}/../build/qrb_amr_manager/libqrb_amr_manager.so"
+  "qrb_amr_manager"
 )
 
 install(TARGETS qrb_ros_amr
     RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-
-
 install(DIRECTORY
   launch
   DESTINATION share/${PROJECT_NAME}/
 )
 
-ament_package()
+ament_auto_package(INSTALL_TO_SHARE launch)
